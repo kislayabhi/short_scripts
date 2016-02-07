@@ -1,32 +1,49 @@
 #include<stdio.h>
 #include<stdbool.h>
 
-/* Count digits, white spaces characters (blank, tab, newline),
-   and of all other characters. */
+#define IN 0
+#define OUT 1
+#define MAX_WORD_LENGTH 50
 
-int main()
+/* Make a histogram of word lengths. */
+
+int main(int argc, char** argv)
 {
-	int c, ndigit, nwhite, nother;	
-	int digitcount[10];
-	
-	ndigit = nwhite = nother = 0;
-	for(int i = 0; i < 10; ++i)
-		digitcount[i] = 0;
-			
+	int c, nwords, ncurr, state;	
+	int wordcount[MAX_WORD_LENGTH];
+	FILE *fp;
 
-	while((c = getchar()) != EOF) {
-		if(c >= '0' && c <= '9')
-			++digitcount[c-'0'];
-		else if(c == ' ' || c == '\t' || c == '\n')
-			++nwhite;
+	nwords = ncurr = 0;
+	state = OUT;
+	for(int i = 0; i < MAX_WORD_LENGTH; ++i)
+		wordcount[i] = 0;
+	if(argc > 1)
+		fp = fopen(argv[1], "r");
+	else
+		fp = fopen("count.c", "r");	
+
+	while((c = getc(fp)) != EOF) {
+		if(c == ' ' || c == '\t' || c == '\n')
+			state = OUT;
+		else if(state == OUT) {
+			state = IN;
+			++nwords;
+			++wordcount[ncurr];
+			ncurr = 1;
+		}
 		else
-			++nother;
+			++ncurr;
 	}
 
-	printf("\nno. of digits:\n");
-	for(int i=0; i<10; ++i)
-		printf("\t%2d count:\t%2d \n", i, digitcount[i]);
-
-	printf("no. of whitespaces:\t%2d\n", nwhite);
-	printf("no. of other:\t%2d\n", nother);
+	printf("\ntotal no. of words: %d", nwords);
+	printf("\nno. of words per length:\n");
+	for(int i = 1; i < MAX_WORD_LENGTH; ++i) {
+		if(wordcount[i]>0) {
+			printf("\t%2d count:\t%6d ", i, wordcount[i]);
+			for(int j = 0; j < wordcount[i]; ++j) {
+				printf("-");
+			}
+			printf("\n");
+		}
+	}
 }
