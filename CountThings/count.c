@@ -10,7 +10,7 @@ int main()
 	int digitcount[10];
 	
 	ndigit = nwhite = nother = 0;
-	for(int i=0; i<10; ++i)
+	for(int i = 0; i < 10; ++i)
 		digitcount[i] = 0;
 			
 
