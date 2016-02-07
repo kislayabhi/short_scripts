@@ -1,6 +1,6 @@
 ### Document Histogram
 
-In this file, we group the words according to their lengths and draw a basic histogram. ;)
+In here, we group the words appearing in a text file according to their lengths and draw a basic histogram in C. ;)
 It was a exercise question in K&R.
 ```
 total no. of words: 145
