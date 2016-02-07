@@ -9,7 +9,8 @@ int main(){
 
     for(int i = 0; i < (sizeof(names))/sizeof(names[0]); ++i){
         insert_hash(names[i]);
-    }
+	}
+	print_hash_table();
     delete_hash_table();
-    print_hash_table(); // Now the motive is to protect Ramdev.
+    print_hash_table(); 
 }
