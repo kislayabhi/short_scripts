@@ -2,7 +2,7 @@
 
 In this file, we group the words according to their lengths and draw a basic histogram. ;)
 It was a exercise question in K&R.
-
+```
 total no. of words: 145
 no. of words per length:
          1 count:           41 -----------------------------------------
@@ -24,3 +24,4 @@ no. of words per length:
         18 count:            1 -
         19 count:            2 --
         27 count:            1 -
+```
