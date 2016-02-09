@@ -3,64 +3,57 @@
 
 #define MAXLINELEN 1500
 
-char *get_line(FILE *fp, int *line_length);
-void save(char *src, char *dest);
+int get_line(FILE *fp, char curr_array[]);
+void save(char src[], char dest[], int length);
 
 int main()
 {
 	FILE *fp = fopen("max_lines.c", "r");
-	char *max_line; /* Stores the longest line */
-	int maxline_length;
-	char *curr_line; /* Stores the current line */
-	int currline_length;
+	char curr_line[MAXLINELEN]; /* Stores the current line */
+	char max_line[MAXLINELEN];  /* Stores the longest line */
+	int maxline_length, currline_length;
 
-	max_line = malloc(MAXLINELEN);
 	maxline_length = currline_length = 0;
 
-	int ii = 0;
-	while(curr_line = get_line(fp, &currline_length)) {
+	while((currline_length = get_line(fp, curr_line)) >= 0 ) {
 		if(currline_length > maxline_length) {
 			maxline_length = currline_length;
-			save(curr_line, max_line);
+			save(curr_line, max_line, maxline_length);
 		}
-		free(curr_line);
 	}
 	
-	for(int i=0; i<MAXLINELEN; ++i)
+	for(int i=0; i<maxline_length; ++i)
 		printf("%c", max_line[i]);
 	printf("\n");
 	
-	free(max_line);
 	free(fp);
 
 }
 
 
-void save(char *src, char *dest) {
-	for(int i = 0; i < MAXLINELEN; ++i)
+void save(char src[], char dest[], int length) {
+	for(int i = 0; i < length; ++i)
 		dest[i]=src[i];
 }
 
 
-char *get_line(FILE *fp, int *line_length) {
+int get_line(FILE *fp, char curr_array[]) {
 	char c;
-	*line_length = 0;
+	int line_length = 0;
 	
 	if((c = getc(fp)) == EOF)
-		return NULL;
+		return -1;
 	else
 		ungetc(c, fp);
 	
-	char *current_array = malloc(MAXLINELEN);
-
 	while((c = getc(fp)) != EOF)
 	    	if(c != '\n' && c != EOF) {
-			current_array[*line_length] = c;
-			++(*line_length);
+			curr_array[line_length] = c;
+			++line_length;
 		}
 		else {
 			break;
 		}
 	
-	return current_array;
+	return line_length;
 }
