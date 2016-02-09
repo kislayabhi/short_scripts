@@ -4,7 +4,7 @@
 #define MAXLINELEN 1500
 
 char *get_line(FILE *fp, int *line_length);
-//void save(char *src, char *dest);
+void save(char *src, char *dest);
 
 int main()
 {
@@ -14,24 +14,33 @@ int main()
 	char *curr_line; /* Stores the current line */
 	int currline_length;
 
+	max_line = malloc(MAXLINELEN);
 	maxline_length = currline_length = 0;
 
 	int ii = 0;
 	while(curr_line = get_line(fp, &currline_length)) {
-		printf("%d", currline_length);
-		for(int i=0; i<MAXLINELEN; ++i)
-			printf("%c", curr_line[i]);
-		printf("\n");
+		if(currline_length > maxline_length) {
+			maxline_length = currline_length;
+			save(curr_line, max_line);
+		}
+		free(curr_line);
 	}
+	
+	for(int i=0; i<MAXLINELEN; ++i)
+		printf("%c", max_line[i]);
+	printf("\n");
+	
+	free(max_line);
+	free(fp);
+
 }
 
-/*
+
 void save(char *src, char *dest) {
-	dest = malloc(MAXLINELEN);
 	for(int i = 0; i < MAXLINELEN; ++i)
 		dest[i]=src[i];
 }
-*/
+
 
 char *get_line(FILE *fp, int *line_length) {
 	char c;
