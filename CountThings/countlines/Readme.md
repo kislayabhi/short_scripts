@@ -1,0 +1,1 @@
+The most common type of array in C is the array of characters. To illustrate the use of character arrays and functions to manipulate them, let us write a program that reads a set of text lines and prints the longest.
