@@ -15,19 +15,17 @@ int main()
 
 	maxline_length = currline_length = 0;
 
-	while((currline_length = get_line(fp, curr_line)) >= 0 ) {
+	while((currline_length = get_line(fp, curr_line)) >= 0 )
 		if(currline_length > maxline_length) {
 			maxline_length = currline_length;
 			save(curr_line, max_line, maxline_length);
 		}
-	}
 	
 	for(int i=0; i<maxline_length; ++i)
 		printf("%c", max_line[i]);
 	printf("\n");
 	
 	free(fp);
-
 }
 
 
@@ -43,17 +41,17 @@ int get_line(FILE *fp, char curr_array[]) {
 	
 	if((c = getc(fp)) == EOF)
 		return -1;
-	else
-		ungetc(c, fp);
-	
-	while((c = getc(fp)) != EOF)
-	    	if(c != '\n' && c != EOF) {
-			curr_array[line_length] = c;
-			++line_length;
-		}
-		else {
-			break;
-		}
+	else {
+		do {	
+			if(c != '\n' && c != EOF) {
+				curr_array[line_length] = c;
+				++line_length;
+			}
+			else {
+				break;
+			}
+		} while((c = getc(fp)) != EOF);
+	}
 	
 	return line_length;
 }
