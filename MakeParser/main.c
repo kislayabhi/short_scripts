@@ -30,7 +30,8 @@ int parse(char * lpszFileName)
 		// each line of the file to be able to deal with it later
 
 		//Remove newline character at end if there is one
-		lpszLine = strtok(szLine, "\n"); 
+		lpszLine = strtok(szLine, "\n");
+	       	
 
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
@@ -38,8 +39,7 @@ int parse(char * lpszFileName)
 		//Skip if whitespace-only.
 		//Only single command is allowed.
 		//If you found any syntax error, stop parsing. 
-		//If lpszLine starts with '\t' it will be command else it will be target.
-		//It is possbile that target may not have a command as you can see from the example on project write-up. (target:all)
+
 		//You can use any data structure (array, linked list ...) as you want to build a graph
 	}
 
@@ -60,7 +60,11 @@ void show_error_message(char * lpszFileName)
 	exit(0);
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)  {
+	parse(argv[1]);
+}
+
+int mains(int argc, char **argv) 
 {
 	// Declarations for getopt
 	extern int optind;
