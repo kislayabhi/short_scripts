@@ -9,6 +9,9 @@
 
 #include "util.h"
 
+#define TARGET 1
+#define COMMAND 2
+
 //This function will parse makefile input from user or default makeFile. 
 int parse(char * lpszFileName)
 {
@@ -31,12 +34,37 @@ int parse(char * lpszFileName)
 
 		//Remove newline character at end if there is one
 		lpszLine = strtok(szLine, "\n");
-	       	
 
-		//You need to check below for parsing. 
 		//Skip if blank or comment.
+		if(szLine[0] == '#' || szLine[0] == '\n')
+			continue;
+
+
+
+		char **argvadr;
+	       	int ntokens = makeargv(lpszLine, " ", &argvadr);	
 		//Remove leading whitespace.
 		//Skip if whitespace-only.
+		if(ntokens <= 0)
+			continue;
+
+		int curr = -1; /* Indicates the current line status */
+		if(argvadr[0][strlen(argvadr[0]) - 1] == ':')
+			curr = TARGET;
+		else if(argvadr[0][0] == '\t')
+			curr = COMMAND;
+		else  {
+			printf("Error in makefile");
+			break;
+		}
+
+		int i;
+		for(i = 0; i < ntokens; ++i)  {
+			printf("\t%d\t%d\t%s\n", curr, ntokens, argvadr[i]);
+		}
+
+		//You need to check below for parsing. 
+		
 		//Only single command is allowed.
 		//If you found any syntax error, stop parsing. 
 
