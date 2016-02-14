@@ -40,6 +40,11 @@ typedef struct target{
 	int nStatus;
 }target_t;
 
+typedef struct maketree  {
+	target_t *nodelist[MAX_CHILDREN];
+	int current_id;	
+}maketree;
+
 int makeargv(const char *s, const char *delimiters, char ***argvp);
 void freemakeargv(char **argv);
 

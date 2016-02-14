@@ -12,6 +12,10 @@
 #define TARGET 1
 #define COMMAND 2
 
+
+maketree make406;
+
+void generate_parsingtree(target_t *node);
 //This function will parse makefile input from user or default makeFile. 
 int parse(char * lpszFileName)
 {
@@ -24,6 +28,9 @@ int parse(char * lpszFileName)
 	{
 		return -1;
 	}
+	
+	/* This is not a simple initializer but an executable code */
+	make406.current_id = 0;
 
 	while(file_getline(szLine, fp) != NULL) 
 	{
@@ -39,8 +46,6 @@ int parse(char * lpszFileName)
 		if(szLine[0] == '#' || szLine[0] == '\n')
 			continue;
 
-
-
 		char **argvadr;
 	       	int ntokens = makeargv(lpszLine, " ", &argvadr);	
 		//Remove leading whitespace.
@@ -49,19 +54,40 @@ int parse(char * lpszFileName)
 			continue;
 
 		int curr = -1; /* Indicates the current line status */
-		if(argvadr[0][strlen(argvadr[0]) - 1] == ':')
-			curr = TARGET;
-		else if(argvadr[0][0] == '\t')
-			curr = COMMAND;
-		else  {
-			printf("Error in makefile");
-			break;
+		if(argvadr[0][strlen(argvadr[0]) - 1] != ':')  {
+			fprintf(stderr, "%d line should be target", nLine);
+			return -1;
 		}
+		curr = TARGET; /* We are right now in a target line */
 
+		/* Initialize a node in the MakeTree*/	
+		target_t *node = malloc(sizeof(target_t));
+		make406.nodelist[make406.current_id++] = node;
+
+		/* TODO: push this node's target field. */
+		strncpy(node->szTarget, argvadr[0], strlen(argvadr[0])-1);
+		node->nDependencyCount = ntokens-1;
 		int i;
-		for(i = 0; i < ntokens; ++i)  {
-			printf("\t%d\t%d\t%s\n", curr, ntokens, argvadr[i]);
+		for(i=0; i<ntokens-1; ++i)
+			strcpy(node->szDependencies[i], argvadr[i+1]);
+
+		if(file_getline(szLine, fp) == NULL)  {
+			fprintf(stderr, "%d line is missing", nLine);
+			return -1;
 		}
+		nLine++;
+		lpszLine = strtok(szLine, "\n");
+		if((lpszLine[0] != '\t'))  {
+			fprintf(stderr, "%d line should be command", nLine);
+			return -1;
+		}
+		curr = COMMAND; /* We are currently in a command line */
+		strcpy(node->szCommand, lpszLine);
+	
+		for(i = 0; i < ntokens; ++i)  {
+			printf("\t%d\t%d\t%d\t%s\n", nLine, curr, ntokens, argvadr[i]);
+		}
+		
 
 		//You need to check below for parsing. 
 		
@@ -71,10 +97,43 @@ int parse(char * lpszFileName)
 		//You can use any data structure (array, linked list ...) as you want to build a graph
 	}
 
-	//Close the makefile. 
+	// Close the makefile. 
 	fclose(fp);
+	
+	// Printing out the nodes here. 
+	int i,j;
+	i = 0;
+	for( ; i<make406.current_id; ++i)  {
+		printf("%s\n", make406.nodelist[i]->szTarget);
+		j = 0;
+		printf("no_dependencies: %d\n", make406.nodelist[i]->nDependencyCount);
+		for( ; j < make406.nodelist[i]->nDependencyCount; ++j)
+			printf("\t%s\n", make406.nodelist[i]->szDependencies[j]);
+	}
 
+	generate_parsingtree(make406.nodelist[0]);
 	return 0;
+}
+
+target_t *find_target(char *tarname)  {
+	int i = 0;
+	for( ; i < make406.current_id; ++i)
+		if(strcmp(make406.nodelist[i]->szTarget, tarname) == 0)
+			return make406.nodelist[i];
+	return NULL;
+}
+
+void generate_parsingtree(target_t *node)
+{
+	if(node == NULL)
+		return;
+	int ndep = 0;
+	while(ndep < node->nDependencyCount)  {
+		printf("File modified: %s at %d",  node->szDependencies[ndep], get_file_modification_time(node->szDependencies[ndep]));
+		generate_parsingtree(find_target(node->szDependencies[ndep++]));
+	}
+	// Execute the code;
+	system(node->szCommand);
 }
 
 void show_error_message(char * lpszFileName)
@@ -141,7 +200,7 @@ int mains(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	//You may start your program by setting the target that make4061 should build.
+	//You may start your program by setting the target that make406 should build.
 	//if target is not set, set it to default (first target from makefile)
 	if(argc == 1)
 	{
