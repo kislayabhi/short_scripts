@@ -14,7 +14,7 @@ letter [A-Za-z]
 digit [0-9]
 elphanum ({letter}|{digit})
 ID {letter}({letter}|{digit}|"_")*
-COMMENTS "/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*"*"+"/"
+COMMENTS [/][*]([^*]|(\*+([^*/]|[\r\n\t])))*[*]+[/]
 %%
 
 {COMMENTS}    {comments++; tokens++; insert_comment(yytext); }
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     printf("There are %d comments:\n",comments);
     print_symtab();
     print_comtab();	/* Print Comments and Symbols */
-    // cleanup_comtab();	/* Clean up tables */
-    // cleanup_symtab();
+    cleanup_comtab();	/* Clean up tables */
+    cleanup_symtab();
     return 0;
 }
