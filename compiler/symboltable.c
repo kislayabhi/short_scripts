@@ -12,6 +12,7 @@ symbol_table *comment_table;
 
 void init_symtab()  {	/* Initialize Symbol Table */
 	id_table = (symbol_table*)malloc(sizeof(symbol_table));
+	id_table->size = 0;
 }
 
 void insert_id(char *text)  {  /* Populate Symbol Table */
@@ -19,7 +20,8 @@ void insert_id(char *text)  {  /* Populate Symbol Table */
 }
 
 void print_symtab()  {  /* Print Symbol Table */
-	print_hash_table(id_table);
+	printf("\n\nFrequency of identifiers");
+	print_hash_table(id_table, true);
 }
 
 void cleanup_symtab()  {  /* Clean Symbol Table */
@@ -28,6 +30,7 @@ void cleanup_symtab()  {  /* Clean Symbol Table */
 
 void init_comtab()  {  /* Initialize Comment Table */
 	comment_table = (symbol_table*)malloc(sizeof(symbol_table));
+	comment_table->size = 0;
 }
 
 void insert_comment(char *comment)  {  /* Insert comments into Comment Table */
@@ -35,7 +38,7 @@ void insert_comment(char *comment)  {  /* Insert comments into Comment Table */
 }
 
 void print_comtab()  {  /* Print Comment Table */
-	print_hash_table(comment_table);
+	print_hash_table(comment_table, false);
 }
 
 void cleanup_comtab()  {  /* Clean Comment Table */

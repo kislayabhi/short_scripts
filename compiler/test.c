@@ -9,11 +9,11 @@ float b1;
 } s1;
 write("Enter a number");
 /* 2: this is a 3-line
-comment
-*/
+ comment
+ */
 n = read();
 abc = n + 1;
 def = abc * abc;
-write(def); /* 3: this is *//* the end ***/
+write(def); /* 3: this is /* the end ***/
 }
 
