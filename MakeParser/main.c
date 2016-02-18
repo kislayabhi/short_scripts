@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/wait.h> 
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "util.h"
@@ -15,8 +15,8 @@
 
 maketree make406;
 
-void generate_parsingtree(target_t *node);
-//This function will parse makefile input from user or default makeFile. 
+void generate_parsingtree(target_t *node, pid_t*);
+//This function will parse makefile input from user or default makeFile.
 int parse(char * lpszFileName)
 {
 	int nLine=0;
@@ -28,11 +28,11 @@ int parse(char * lpszFileName)
 	{
 		return -1;
 	}
-	
+
 	/* This is not a simple initializer but an executable code */
 	make406.current_id = 0;
 
-	while(file_getline(szLine, fp) != NULL) 
+	while(file_getline(szLine, fp) != NULL)
 	{
 		nLine++;
 		// this loop will go through the given file, one line at a time
@@ -47,7 +47,7 @@ int parse(char * lpszFileName)
 			continue;
 
 		char **argvadr;
-	       	int ntokens = makeargv(lpszLine, " ", &argvadr);	
+	       	int ntokens = makeargv(lpszLine, " ", &argvadr);
 		//Remove leading whitespace.
 		//Skip if whitespace-only.
 		if(ntokens <= 0)
@@ -60,7 +60,7 @@ int parse(char * lpszFileName)
 		}
 		curr = TARGET; /* We are right now in a target line */
 
-		/* Initialize a node in the MakeTree*/	
+		/* Initialize a node in the MakeTree*/
 		target_t *node = malloc(sizeof(target_t));
 		make406.nodelist[make406.current_id++] = node;
 
@@ -83,24 +83,19 @@ int parse(char * lpszFileName)
 		}
 		curr = COMMAND; /* We are currently in a command line */
 		strcpy(node->szCommand, lpszLine);
-	
+
 		for(i = 0; i < ntokens; ++i)  {
 			printf("\t%d\t%d\t%d\t%s\n", nLine, curr, ntokens, argvadr[i]);
 		}
-		
 
-		//You need to check below for parsing. 
-		
 		//Only single command is allowed.
-		//If you found any syntax error, stop parsing. 
-
-		//You can use any data structure (array, linked list ...) as you want to build a graph
+		//If you found any syntax error, stop parsing.
 	}
 
-	// Close the makefile. 
+	// Close the makefile.
 	fclose(fp);
-	
-	// Printing out the nodes here. 
+
+	// Printing out the nodes here.
 	int i,j;
 	i = 0;
 	for( ; i<make406.current_id; ++i)  {
@@ -110,8 +105,10 @@ int parse(char * lpszFileName)
 		for( ; j < make406.nodelist[i]->nDependencyCount; ++j)
 			printf("\t%s\n", make406.nodelist[i]->szDependencies[j]);
 	}
-
-	generate_parsingtree(make406.nodelist[0]);
+	pid_t main_child_pid;
+	int status = 0;
+	generate_parsingtree(make406.nodelist[0], &main_child_pid);
+	main_child_pid = waitpid(main_child_pid, &status, 0);
 	return 0;
 }
 
@@ -123,17 +120,45 @@ target_t *find_target(char *tarname)  {
 	return NULL;
 }
 
-void generate_parsingtree(target_t *node)
+void generate_parsingtree(target_t *node, pid_t *child_pid)
 {
 	if(node == NULL)
 		return;
 	int ndep = 0;
+	pid_t cpid[node->nDependencyCount];
+	int status[node->nDependencyCount];
+	memset(status, 0, node->nDependencyCount);
+
 	while(ndep < node->nDependencyCount)  {
-		printf("File modified: %s at %d",  node->szDependencies[ndep], get_file_modification_time(node->szDependencies[ndep]));
-		generate_parsingtree(find_target(node->szDependencies[ndep++]));
+		generate_parsingtree(find_target(node->szDependencies[ndep]), cpid+ndep);
+		ndep++;
 	}
-	// Execute the code;
-	system(node->szCommand);
+	// Wait for all the children to execute
+	ndep=0;
+	while(ndep < node->nDependencyCount)  {
+		cpid[ndep] = waitpid( cpid[ndep], status+ndep, 0);
+		ndep++;
+	}
+
+	// Execute the code if the dependencies are modified;
+	ndep=0; int virginity = 1;
+	while(ndep < node->nDependencyCount)  {
+		int temp = compare_modification_time(node->szTarget, node->szDependencies[ndep]);
+		if(temp!=1)
+			virginity = -1;
+		ndep++;
+	}
+	if(virginity ==-1)  { /* virginity is lost.  */
+		*child_pid = fork();
+		if(*child_pid==0)  {
+			system(node->szCommand);
+			printf("\n%s\t%d", node->szCommand, getpid());
+			exit(0);
+		}	
+	}
+	else  { /* virginity is maintained.  */
+		printf("\n no need of %s", node->szCommand);
+	}
 }
 
 void show_error_message(char * lpszFileName)
@@ -151,22 +176,22 @@ int main(int argc, char **argv)  {
 	parse(argv[1]);
 }
 
-int mains(int argc, char **argv) 
+int mains(int argc, char **argv)
 {
 	// Declarations for getopt
 	extern int optind;
 	extern char * optarg;
 	int ch;
 	char * format = "f:hnBm:";
-	
+
 	// Default makefile name will be Makefile
 	char szMakefile[64] = "Makefile";
 	char szTarget[64];
 	char szLog[64];
 
-	while((ch = getopt(argc, argv, format)) != -1) 
+	while((ch = getopt(argc, argv, format)) != -1)
 	{
-		switch(ch) 
+		switch(ch)
 		{
 			case 'f':
 				strcpy(szMakefile, strdup(optarg));
@@ -188,10 +213,10 @@ int mains(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	// at this point, what is left in argv is the targets that were 
+	// at this point, what is left in argv is the targets that were
 	// specified on the command line. argc has the number of them.
 	// If getopt is still really confusing,
-	// try printing out what's in argv right here, then just running 
+	// try printing out what's in argv right here, then just running
 	// with various command-line arguments.
 
 	if(argc > 1)
@@ -211,7 +236,7 @@ int mains(int argc, char **argv)
 
 
 	/* Parse graph file or die */
-	if((parse(szMakefile)) == -1) 
+	if((parse(szMakefile)) == -1)
 	{
 		return EXIT_FAILURE;
 	}
